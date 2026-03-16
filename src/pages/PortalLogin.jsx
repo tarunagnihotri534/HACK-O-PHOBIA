@@ -4,8 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GraduationCap, IdCard, Lock, ArrowRight, UserPlus, User } from 'lucide-react';
 
 const portalTitles = {
-  student: { heading: 'Student Login',  sub: 'Login with your UID and Password'    },
-  staff:   { heading: 'Faculty Login',  sub: 'Login with your L-Code and Password' },
+  student: { heading: 'Student Login', sub: 'Login with your UID and Password' },
+  lms:     { heading: 'LMS Login',     sub: 'Login with your UID / EmployeeID' },
+  staff:   { heading: 'Staff Login',   sub: 'Login with your Employee Code' },
 };
 
 const PortalLogin = () => {
@@ -28,8 +29,6 @@ const PortalLogin = () => {
     setError('');
     if (portal === 'student') {
       navigate('/student-dashboard');
-    } else if (portal === 'staff') {
-      navigate('/faculty-dashboard');
     } else {
       navigate('/dashboard');
     }
@@ -107,7 +106,7 @@ const PortalLogin = () => {
                 <IdCard size={18} className="text-gray-400 flex-shrink-0" />
                 <input
                   type="text"
-                  placeholder={portal === 'staff' ? 'L ID (e.g. L100357)' : 'University ID'}
+                  placeholder="University ID"
                   value={loginData.uid}
                   onChange={(e) => setLoginData({ ...loginData, uid: e.target.value })}
                   className="flex-1 text-sm outline-none bg-transparent text-gray-700 placeholder-gray-400"

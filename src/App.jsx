@@ -4,7 +4,6 @@ import LoginPage from './pages/Login';
 import PortalLogin from './pages/PortalLogin';
 import Dashboard from './pages/Dashboard';
 import StudentDashboard from './pages/StudentDashboard';
-import FacultyDashboard from './pages/FacultyDashboard';
 
 const App = () => {
   return (
@@ -13,7 +12,6 @@ const App = () => {
         <Route path="/" element={<LoginPage />} />
         <Route path="/portal" element={<PortalLogin />} />
         <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/faculty-dashboard" element={<FacultyDashboard />} />
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
