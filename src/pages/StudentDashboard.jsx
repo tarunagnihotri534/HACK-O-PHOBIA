@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   GraduationCap, LayoutDashboard, BookOpen, CalendarCheck,
@@ -6,8 +6,10 @@ import {
   TrendingUp, Award, Clock, CheckCircle2, XCircle,
   Trophy, Mic2, Laptop, Palette, FlaskConical, Music,
   FileText, Download, Eye, Search, Filter,
-  Scroll, BadgeCheck, Receipt, FileCheck, ShieldCheck, BookMarked
+  Scroll, BadgeCheck, Receipt, FileCheck, ShieldCheck, BookMarked,
+  MapPin, QrCode, ScanLine, Navigation, Building2, X, RefreshCw, Info
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigate } from 'react-router-dom';
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -29,56 +31,55 @@ const student = {
 
 const subjects = [
   { code: 'CSE-301', name: 'Data Structures & Algorithms', internal: 28, external: 62, total: 90, max: 100, grade: 'A+' },
-  { code: 'CSE-302', name: 'Operating Systems',            internal: 24, external: 55, total: 79, max: 100, grade: 'A'  },
-  { code: 'CSE-303', name: 'Database Management Systems',  internal: 26, external: 58, total: 84, max: 100, grade: 'A+' },
-  { code: 'MTH-201', name: 'Discrete Mathematics',         internal: 22, external: 48, total: 70, max: 100, grade: 'B+' },
-  { code: 'CSE-304', name: 'Computer Networks',            internal: 25, external: 60, total: 85, max: 100, grade: 'A+' },
-  { code: 'CSE-305', name: 'Software Engineering',         internal: 27, external: 56, total: 83, max: 100, grade: 'A'  },
+  { code: 'CSE-302', name: 'Operating Systems', internal: 24, external: 55, total: 79, max: 100, grade: 'A' },
+  { code: 'CSE-303', name: 'Database Management Systems', internal: 26, external: 58, total: 84, max: 100, grade: 'A+' },
+  { code: 'MTH-201', name: 'Discrete Mathematics', internal: 22, external: 48, total: 70, max: 100, grade: 'B+' },
+  { code: 'CSE-304', name: 'Computer Networks', internal: 25, external: 60, total: 85, max: 100, grade: 'A+' },
+  { code: 'CSE-305', name: 'Software Engineering', internal: 27, external: 56, total: 83, max: 100, grade: 'A' },
 ];
 
 const attendance = [
-  { code: 'CSE-301', name: 'DSA',              total: 42, attended: 39 },
-  { code: 'CSE-302', name: 'OS',               total: 38, attended: 32 },
-  { code: 'CSE-303', name: 'DBMS',             total: 40, attended: 38 },
-  { code: 'MTH-201', name: 'Discrete Maths',   total: 35, attended: 28 },
-  { code: 'CSE-304', name: 'Networks',          total: 42, attended: 40 },
-  { code: 'CSE-305', name: 'Software Engg.',    total: 36, attended: 34 },
+  { code: 'CSE-301', name: 'DSA', total: 42, attended: 39 },
+  { code: 'CSE-302', name: 'OS', total: 38, attended: 32 },
+  { code: 'CSE-303', name: 'DBMS', total: 40, attended: 38 },
+  { code: 'MTH-201', name: 'Discrete Maths', total: 35, attended: 28 },
+  { code: 'CSE-304', name: 'Networks', total: 42, attended: 40 },
+  { code: 'CSE-305', name: 'Software Engg.', total: 36, attended: 34 },
 ];
 
 const events = [
-  { id: 1, title: 'Hackathon – HACK O PHOBIA 3.0', date: 'Mar 22, 2026', time: '9:00 AM', venue: 'CU Tech Hub', icon: Laptop,   color: '#6366f1', tag: 'Technical'   },
-  { id: 2, title: 'Annual Cultural Fest – UTSAV',   date: 'Apr 5, 2026',  time: '6:00 PM', venue: 'CU Amphitheatre', icon: Music,    color: '#ec4899', tag: 'Cultural'    },
-  { id: 3, title: 'Science & Innovation Expo',       date: 'Apr 12, 2026', time: '10:00 AM',venue: 'CU Exhibition Hall', icon: FlaskConical,color:'#f59e0b', tag: 'Science'     },
-  { id: 4, title: 'TEDx Chandigarh University',      date: 'Apr 20, 2026', time: '11:00 AM',venue: 'CU Auditorium', icon: Mic2, color: '#e20000',   tag: 'Talk'        },
-  { id: 5, title: 'Inter-University Sports Meet',    date: 'May 3, 2026',  time: '8:00 AM', venue: 'CU Sports Complex', icon: Trophy,   color: '#10b981', tag: 'Sports'      },
-  { id: 6, title: 'Art & Design Exhibition',         date: 'May 10, 2026', time: '2:00 PM', venue: 'CU Gallery', icon: Palette,    color: '#8b5cf6', tag: 'Arts'        },
+  { id: 1, title: 'Hackathon – HACK O PHOBIA 3.0', date: 'Mar 22, 2026', time: '9:00 AM', venue: 'CU Tech Hub', icon: Laptop, color: '#6366f1', tag: 'Technical' },
+  { id: 2, title: 'Annual Cultural Fest – UTSAV', date: 'Apr 5, 2026', time: '6:00 PM', venue: 'CU Amphitheatre', icon: Music, color: '#ec4899', tag: 'Cultural' },
+  { id: 3, title: 'Science & Innovation Expo', date: 'Apr 12, 2026', time: '10:00 AM', venue: 'CU Exhibition Hall', icon: FlaskConical, color: '#f59e0b', tag: 'Science' },
+  { id: 4, title: 'TEDx Chandigarh University', date: 'Apr 20, 2026', time: '11:00 AM', venue: 'CU Auditorium', icon: Mic2, color: '#e20000', tag: 'Talk' },
+  { id: 5, title: 'Inter-University Sports Meet', date: 'May 3, 2026', time: '8:00 AM', venue: 'CU Sports Complex', icon: Trophy, color: '#10b981', tag: 'Sports' },
+  { id: 6, title: 'Art & Design Exhibition', date: 'May 10, 2026', time: '2:00 PM', venue: 'CU Gallery', icon: Palette, color: '#8b5cf6', tag: 'Arts' },
 ];
 
 const documents = [
   // Scholarship
-  { id: 1,  category: 'Scholarship', title: 'Merit Scholarship Application Form',       desc: 'Apply for merit-based scholarship for Even Semester 2025-26',  icon: Scroll,      color: '#6366f1', status: 'Open',   deadline: 'Mar 31, 2026', size: '245 KB' },
-  { id: 2,  category: 'Scholarship', title: 'Sports Scholarship Form',                  desc: 'For students representing CU in inter-university sports events', icon: Scroll,      color: '#6366f1', status: 'Open',   deadline: 'Apr 10, 2026', size: '198 KB' },
-  { id: 3,  category: 'Scholarship', title: 'Need-Based Financial Aid Form',            desc: 'Apply for financial assistance based on family income',         icon: Scroll,      color: '#6366f1', status: 'Closed', deadline: 'Feb 15, 2026', size: '312 KB' },
+  { id: 1, category: 'Scholarship', title: 'Merit Scholarship Application Form', desc: 'Apply for merit-based scholarship for Even Semester 2025-26', icon: Scroll, color: '#6366f1', status: 'Open', deadline: 'Mar 31, 2026', size: '245 KB' },
+  { id: 2, category: 'Scholarship', title: 'Sports Scholarship Form', desc: 'For students representing CU in inter-university sports events', icon: Scroll, color: '#6366f1', status: 'Open', deadline: 'Apr 10, 2026', size: '198 KB' },
+  { id: 3, category: 'Scholarship', title: 'Need-Based Financial Aid Form', desc: 'Apply for financial assistance based on family income', icon: Scroll, color: '#6366f1', status: 'Closed', deadline: 'Feb 15, 2026', size: '312 KB' },
   // Fee
-  { id: 4,  category: 'Fee',         title: 'Fee Receipt – Semester 4',                desc: 'Official fee payment receipt for Even Semester 2025-26',        icon: Receipt,     color: '#10b981', status: 'Ready',  deadline: null,            size: '156 KB' },
-  { id: 5,  category: 'Fee',         title: 'Fee Receipt – Semester 3',                desc: 'Official fee payment receipt for Odd Semester 2025-26',         icon: Receipt,     color: '#10b981', status: 'Ready',  deadline: null,            size: '148 KB' },
-  { id: 6,  category: 'Fee',         title: 'Hostel Fee Receipt',                       desc: 'Hostel accommodation fee for current academic year',            icon: Receipt,     color: '#10b981', status: 'Ready',  deadline: null,            size: '120 KB' },
+  { id: 4, category: 'Fee', title: 'Fee Receipt – Semester 4', desc: 'Official fee payment receipt for Even Semester 2025-26', icon: Receipt, color: '#10b981', status: 'Ready', deadline: null, size: '156 KB' },
+  { id: 5, category: 'Fee', title: 'Fee Receipt – Semester 3', desc: 'Official fee payment receipt for Odd Semester 2025-26', icon: Receipt, color: '#10b981', status: 'Ready', deadline: null, size: '148 KB' },
+  { id: 6, category: 'Fee', title: 'Hostel Fee Receipt', desc: 'Hostel accommodation fee for current academic year', icon: Receipt, color: '#10b981', status: 'Ready', deadline: null, size: '120 KB' },
   // Certificates
-  { id: 7,  category: 'Certificate', title: 'Bonafide Certificate',                    desc: 'Confirms enrollment at Chandigarh University',                  icon: BadgeCheck,  color: '#f59e0b', status: 'Ready',  deadline: null,            size: '89 KB'  },
-  { id: 8,  category: 'Certificate', title: 'Character Certificate',                   desc: 'Certificate of good conduct issued by the institution',         icon: ShieldCheck, color: '#f59e0b', status: 'Ready',  deadline: null,            size: '92 KB'  },
-  { id: 9,  category: 'Certificate', title: 'Migration Certificate',                   desc: 'Required for students transferring from another university',     icon: FileCheck,   color: '#f59e0b', status: 'Apply', deadline: 'Rolling',       size: '—'      },
+  { id: 7, category: 'Certificate', title: 'Bonafide Certificate', desc: 'Confirms enrollment at Chandigarh University', icon: BadgeCheck, color: '#f59e0b', status: 'Ready', deadline: null, size: '89 KB' },
+  { id: 8, category: 'Certificate', title: 'Character Certificate', desc: 'Certificate of good conduct issued by the institution', icon: ShieldCheck, color: '#f59e0b', status: 'Ready', deadline: null, size: '92 KB' },
+  { id: 9, category: 'Certificate', title: 'Migration Certificate', desc: 'Required for students transferring from another university', icon: FileCheck, color: '#f59e0b', status: 'Apply', deadline: 'Rolling', size: '—' },
   // Academic
-  { id: 10, category: 'Academic',    title: 'Semester 3 Marksheet',                    desc: 'Official marksheet for Odd Semester 2024-25',                   icon: BookMarked,  color: '#e20000', status: 'Ready',  deadline: null,            size: '210 KB' },
-  { id: 11, category: 'Academic',    title: 'Semester 2 Marksheet',                    desc: 'Official marksheet for Even Semester 2023-24',                  icon: BookMarked,  color: '#e20000', status: 'Ready',  deadline: null,            size: '205 KB' },
-  { id: 12, category: 'Academic',    title: 'Provisional Degree Form',                 desc: 'Apply for provisional degree certificate upon completion',       icon: FileText,    color: '#e20000', status: 'Locked', deadline: 'Final Yr only', size: '—'      },
+  { id: 10, category: 'Academic', title: 'Semester 3 Marksheet', desc: 'Official marksheet for Odd Semester 2024-25', icon: BookMarked, color: '#e20000', status: 'Ready', deadline: null, size: '210 KB' },
+  { id: 11, category: 'Academic', title: 'Semester 2 Marksheet', desc: 'Official marksheet for Even Semester 2023-24', icon: BookMarked, color: '#e20000', status: 'Ready', deadline: null, size: '205 KB' },
+  { id: 12, category: 'Academic', title: 'Provisional Degree Form', desc: 'Apply for provisional degree certificate upon completion', icon: FileText, color: '#e20000', status: 'Locked', deadline: 'Final Yr only', size: '—' },
 ];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const gradeColor = (g) => ({
   'A+': 'text-emerald-600 bg-emerald-50',
-  'A':  'text-blue-600 bg-blue-50',
+  'A': 'text-blue-600 bg-blue-50',
   'B+': 'text-amber-600 bg-amber-50',
-  'B':  'text-orange-600 bg-orange-50',
+  'B': 'text-orange-600 bg-orange-50',
 }[g] || 'text-gray-600 bg-gray-100');
 
 const AttBar = ({ pct }) => {
@@ -98,13 +99,360 @@ const AttBar = ({ pct }) => {
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 const navItems = [
-  { id: 'overview',    label: 'Overview',     icon: LayoutDashboard },
-  { id: 'marks',       label: 'Marks',        icon: BookOpen        },
-  { id: 'attendance',  label: 'Attendance',   icon: CalendarCheck   },
-  { id: 'documents',   label: 'Documents',    icon: FileText        },
-  { id: 'events',      label: 'Events',       icon: CalendarDays    },
-  { id: 'profile',     label: 'My Profile',   icon: User            },
+  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+  { id: 'marks', label: 'Marks', icon: BookOpen },
+  { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
+  { id: 'documents', label: 'Documents', icon: FileText },
+  { id: 'events', label: 'Events', icon: CalendarDays },
+  { id: 'profile', label: 'My Profile', icon: User },
+  { id: 'locate', label: 'Locate Campus', icon: MapPin },
 ];
+
+// ─── Campus Locations (keyed by QR code value) ───────────────────────────────
+const campusLocations = {
+  'CU-LH-A': {
+    name: 'Lecture Hall Complex – Block A',
+    zone: 'Academic Zone',
+    building: 'LH Block A',
+    floor: 'Ground Floor',
+    description: 'Main lecture halls for CSE & IT departments. Capacity: 500 students.',
+    facilities: ['Projector', 'AC', 'WiFi', 'Accessible'],
+    color: '#6366f1',
+    emoji: '🏫',
+    nearbyPlaces: ['Canteen Block B', 'Library (5 min walk)', 'ATM'],
+  },
+  'CU-LIB': {
+    name: 'Central Library',
+    zone: 'Knowledge Hub',
+    building: 'Library Block',
+    floor: 'All Floors',
+    description: 'University central library with 3 lakh+ books, digital resources & reading halls.',
+    facilities: ['Digital Catalogue', 'Quiet Zones', 'WiFi', 'Printing'],
+    color: '#10b981',
+    emoji: '📚',
+    nearbyPlaces: ['Study Café', 'Admin Block', 'Photocopy Shop'],
+  },
+  'CU-TECH-HUB': {
+    name: 'CU Tech Hub',
+    zone: 'Innovation Zone',
+    building: 'Tech Hub',
+    floor: '2nd Floor',
+    description: 'Innovation & incubation centre for startups, hackathons, and tech events.',
+    facilities: ['High-Speed LAN', 'Server Room', 'Event Hall', '24/7 Access'],
+    color: '#f59e0b',
+    emoji: '💡',
+    nearbyPlaces: ['Computer Labs', 'Canteen', 'Parking Area'],
+  },
+  'CU-SPORTS': {
+    name: 'CU Sports Complex',
+    zone: 'Sports & Recreation',
+    building: 'Sports Block',
+    floor: 'Ground Level',
+    description: 'Multi-sport complex with cricket ground, basketball courts, gym & pool.',
+    facilities: ['Gymnasium', 'Swimming Pool', 'Changing Rooms', 'Coaching Staff'],
+    color: '#e20000',
+    emoji: '🏆',
+    nearbyPlaces: ['Medical Centre', 'Juice Corner', 'Hostel Block C'],
+  },
+  'CU-HOSTEL-A': {
+    name: 'Girls Hostel – Block A',
+    zone: 'Residential Zone',
+    building: 'Hostel A',
+    floor: 'All Floors',
+    description: 'Girls residential hostel with 24/7 security, WiFi & mess facility.',
+    facilities: ['Mess', 'Laundry', 'WiFi', 'CCTV Security'],
+    color: '#ec4899',
+    emoji: '🏠',
+    nearbyPlaces: ['Hostel B', 'Girls Canteen', 'Medical Post'],
+  },
+  'CU-CAFE-1': {
+    name: 'Food Court – Zone 1',
+    zone: 'Dining Zone',
+    building: 'Central Food Court',
+    floor: 'Ground Floor',
+    description: 'Main food court with 15+ food stalls offering North Indian, South Indian, Chinese and Fast Food.',
+    facilities: ['Seating: 300+', 'Veg & Non-Veg', 'Digital Payment', 'AC Section'],
+    color: '#f97316',
+    emoji: '🍱',
+    nearbyPlaces: ['Lecture Hall B', 'ATM', 'Stationery Shop'],
+  },
+  'CU-ADMIN': {
+    name: 'Administrative Block',
+    zone: 'Administrative Zone',
+    building: 'Admin Block',
+    floor: 'Ground & 1st Floor',
+    description: 'Central administration office — admissions, fee, registrar, and university offices.',
+    facilities: ['Fee Counter', 'Registrar Office', 'Exam Cell', 'Help Desk'],
+    color: '#8b5cf6',
+    emoji: '🏛️',
+    nearbyPlaces: ['Parking Lot', 'Library', 'Main Gate'],
+  },
+  'CU-MEDICAL': {
+    name: 'Medical Centre',
+    zone: 'Health Zone',
+    building: 'Medical Block',
+    floor: 'Ground Floor',
+    description: '24/7 on-campus medical facility with doctors, nurses and ambulance service.',
+    facilities: ['Emergency Care', 'OPD', 'Pharmacy', '24/7 Ambulance'],
+    color: '#ef4444',
+    emoji: '🏥',
+    nearbyPlaces: ['Sports Complex', 'Hostel D', 'Security Office'],
+  },
+};
+
+// ─── QR Scanner Component ──────────────────────────────────────────────────────
+const LocateCampus = () => {
+  const [scanning, setScanning] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [error, setError] = useState('');
+  const [scannerReady, setScannerReady] = useState(false);
+  const scannerRef = useRef(null);
+  const html5QrRef = useRef(null);
+
+  const startScanner = async () => {
+    setError('');
+    setLocation(null);
+    setScanning(true);
+  };
+
+  useEffect(() => {
+    if (!scanning) return;
+    const id = 'cu-qr-reader';
+    const scanner = new Html5Qrcode(id);
+    html5QrRef.current = scanner;
+    setScannerReady(false);
+
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
+      (decodedText) => {
+        const loc = campusLocations[decodedText.trim()];
+        if (loc) {
+          stopScanner(scanner);
+          setLocation(loc);
+          setScanning(false);
+        } else {
+          setError(`Unknown QR code: "${decodedText}". Please scan a valid CU campus QR.`);
+          stopScanner(scanner);
+          setScanning(false);
+        }
+      },
+      () => {} // ignore frame errors
+    )
+    .then(() => setScannerReady(true))
+    .catch((err) => {
+      setError('Camera access denied or unavailable. Please allow camera permission and try again.');
+      setScanning(false);
+    });
+
+    return () => { stopScanner(scanner); };
+  }, [scanning]);
+
+  const stopScanner = (scanner) => {
+    try {
+      scanner?.stop().catch(() => {});
+    } catch {}
+  };
+
+  const reset = () => {
+    setLocation(null);
+    setError('');
+  };
+
+  // Demo function to simulate finding a location (for testing without real QR)
+  const demoLocation = (key) => {
+    setLocation(campusLocations[key]);
+    setError('');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Card */}
+      <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 opacity-10">
+          <svg viewBox="0 0 200 200" fill="none">
+            <circle cx="100" cy="100" r="80" stroke="white" strokeWidth="2" strokeDasharray="8 4"/>
+            <circle cx="100" cy="100" r="50" stroke="white" strokeWidth="2"/>
+            <circle cx="100" cy="100" r="8" fill="white"/>
+            <line x1="100" y1="20" x2="100" y2="60" stroke="white" strokeWidth="2"/>
+            <line x1="100" y1="140" x2="100" y2="180" stroke="white" strokeWidth="2"/>
+            <line x1="20" y1="100" x2="60" y2="100" stroke="white" strokeWidth="2"/>
+            <line x1="140" y1="100" x2="180" y2="100" stroke="white" strokeWidth="2"/>
+          </svg>
+        </div>
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
+            <Navigation size={28} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black leading-none">Locate on Campus</h2>
+            <p className="text-white/60 text-sm mt-1">Scan a QR code to find your location</p>
+          </div>
+        </div>
+        <p className="text-white/50 text-xs mt-4 leading-relaxed relative z-10">
+          📍 QR codes are placed at building entrances, noticeboards & key spots across Chandigarh University campus.
+        </p>
+      </div>
+
+      {/* Scanner Area */}
+      {!location && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="text-center">
+            {!scanning ? (
+              <>
+                <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-[#e20000]/10 flex items-center justify-center">
+                  <QrCode size={40} className="text-[#e20000]" />
+                </div>
+                <h3 className="font-black text-gray-800 text-lg">Scan Campus QR Code</h3>
+                <p className="text-gray-400 text-sm mt-2 mb-6 max-w-xs mx-auto">
+                  Point your camera at any QR code placed around the campus to instantly know your location.
+                </p>
+                {error && (
+                  <div className="mb-4 bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2 text-left">
+                    <X size={16} className="text-red-500 shrink-0" />
+                    <p className="text-xs text-red-600">{error}</p>
+                  </div>
+                )}
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={startScanner}
+                  className="w-full max-w-xs mx-auto flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#e20000] text-white font-bold text-sm shadow-lg shadow-red-200 hover:bg-red-700 transition-colors"
+                >
+                  <ScanLine size={18} /> Start QR Scanner
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <div className="relative">
+                  <div id="cu-qr-reader" className="w-full max-w-sm mx-auto rounded-xl overflow-hidden" />
+                  {/* Scanning overlay animation */}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <motion.div
+                      animate={{ opacity: [0.4, 1, 0.4] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="text-xs font-bold text-white bg-black/50 px-3 py-1 rounded-full"
+                    >
+                      🔍 Scanning…
+                    </motion.div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { stopScanner(html5QrRef.current); setScanning(false); }}
+                  className="mt-4 flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <X size={16} /> Cancel
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Location Result */}
+      {location && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-4"
+        >
+          {/* You Are Here Banner */}
+          <div
+            className="rounded-2xl p-6 text-white relative overflow-hidden"
+            style={{ background: `linear-gradient(135deg, ${location.color}, ${location.color}cc)` }}
+          >
+            <div className="absolute top-0 right-0 text-8xl opacity-20 leading-none pr-4 pt-2">
+              {location.emoji}
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold bg-white/20 px-3 py-1 rounded-full backdrop-blur">
+                📍 YOU ARE HERE
+              </span>
+              <span className="text-xs bg-white/20 px-3 py-1 rounded-full">{location.zone}</span>
+            </div>
+            <h2 className="text-2xl font-black leading-tight">{location.name}</h2>
+            <p className="text-white/70 text-sm mt-1">{location.building} · {location.floor}</p>
+            <p className="text-white/80 text-sm mt-3 leading-relaxed max-w-sm">{location.description}</p>
+          </div>
+
+          {/* Facilities & Nearby */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <Building2 size={16} style={{ color: location.color }} /> Facilities Here
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {location.facilities.map((f) => (
+                  <span
+                    key={f}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                    style={{ background: location.color + '15', color: location.color }}
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <MapPin size={16} className="text-gray-500" /> Nearby Places
+              </h4>
+              <ul className="space-y-2">
+                {location.nearbyPlaces.map((p) => (
+                  <li key={p} className="flex items-center gap-2 text-sm text-gray-600">
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: location.color }} />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Scan Again */}
+          <div className="flex gap-3">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={reset}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#e20000] text-white font-bold text-sm shadow-md shadow-red-200"
+            >
+              <RefreshCw size={16} /> Scan Another QR
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Demo Section – for testing without physical QR codes */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Info size={15} className="text-gray-400" />
+          <h4 className="text-sm font-bold text-gray-700">Demo — Try a Campus Location</h4>
+          <span className="text-[10px] bg-amber-100 text-amber-600 font-bold px-2 py-0.5 rounded-full ml-auto">DEMO</span>
+        </div>
+        <p className="text-xs text-gray-400 mb-3">No physical QR? Tap any location below to preview what the scanner would show:</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {Object.entries(campusLocations).slice(0, 8).map(([key, loc]) => (
+            <motion.button
+              key={key}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => demoLocation(key)}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center"
+              style={{ borderColor: loc.color + '40', background: loc.color + '08' }}
+            >
+              <span className="text-xl">{loc.emoji}</span>
+              <span className="text-[10px] font-bold leading-tight" style={{ color: loc.color }}>
+                {loc.building}
+              </span>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── Sections ─────────────────────────────────────────────────────────────────
 const Overview = () => {
@@ -119,10 +467,10 @@ const Overview = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'CGPA',          value: student.cgpa, icon: Award,       color: '#6366f1', bg: '#eef2ff' },
-          { label: 'Avg. Marks',    value: `${avgMarks}%`, icon: TrendingUp, color: '#10b981', bg: '#ecfdf5' },
-          { label: 'Attendance',    value: `${avgAtt}%`,  icon: CalendarCheck,color:'#f59e0b', bg: '#fffbeb' },
-          { label: 'Semester',      value: student.semester.split(' ')[0], icon: Clock, color: '#e20000', bg: '#fff1f2' },
+          { label: 'CGPA', value: student.cgpa, icon: Award, color: '#6366f1', bg: '#eef2ff' },
+          { label: 'Avg. Marks', value: `${avgMarks}%`, icon: TrendingUp, color: '#10b981', bg: '#ecfdf5' },
+          { label: 'Attendance', value: `${avgAtt}%`, icon: CalendarCheck, color: '#f59e0b', bg: '#fffbeb' },
+          { label: 'Semester', value: student.semester.split(' ')[0], icon: Clock, color: '#e20000', bg: '#fff1f2' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <motion.div
             key={label}
@@ -245,10 +593,12 @@ const Attendance = () => (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       {[
         { label: 'Classes Attended', value: attendance.reduce((s, a) => s + a.attended, 0), color: '#10b981', bg: '#ecfdf5' },
-        { label: 'Total Classes',    value: attendance.reduce((s, a) => s + a.total, 0),    color: '#6366f1', bg: '#eef2ff' },
-        { label: 'Avg Attendance',
+        { label: 'Total Classes', value: attendance.reduce((s, a) => s + a.total, 0), color: '#6366f1', bg: '#eef2ff' },
+        {
+          label: 'Avg Attendance',
           value: `${Math.round(attendance.reduce((s, a) => s + (a.attended / a.total) * 100, 0) / attendance.length)}%`,
-          color: '#f59e0b', bg: '#fffbeb' },
+          color: '#f59e0b', bg: '#fffbeb'
+        },
       ].map(({ label, value, color, bg }) => (
         <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black shrink-0" style={{ background: bg, color }}>
@@ -301,17 +651,17 @@ const Documents = () => {
   const categories = ['All', 'Scholarship', 'Fee', 'Certificate', 'Academic'];
 
   const statusStyle = {
-    Open:   { bg: '#ecfdf5', color: '#10b981', label: '● Open'   },
-    Ready:  { bg: '#eef2ff', color: '#6366f1', label: '✓ Ready'  },
+    Open: { bg: '#ecfdf5', color: '#10b981', label: '● Open' },
+    Ready: { bg: '#eef2ff', color: '#6366f1', label: '✓ Ready' },
     Closed: { bg: '#fef2f2', color: '#ef4444', label: '✕ Closed' },
-    Apply:  { bg: '#fffbeb', color: '#f59e0b', label: '→ Apply'  },
+    Apply: { bg: '#fffbeb', color: '#f59e0b', label: '→ Apply' },
     Locked: { bg: '#f3f4f6', color: '#9ca3af', label: '🔒 Locked' },
   };
 
   const filtered = documents.filter(d => {
     const matchCat = filter === 'All' || d.category === filter;
     const matchSearch = d.title.toLowerCase().includes(search.toLowerCase()) ||
-                        d.desc.toLowerCase().includes(search.toLowerCase());
+      d.desc.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 
@@ -334,11 +684,10 @@ const Documents = () => {
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                filter === cat
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${filter === cat
                   ? 'bg-[#e20000] text-white shadow-md shadow-red-200'
                   : 'bg-white border border-gray-200 text-gray-500 hover:text-gray-800'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -511,18 +860,18 @@ const Profile = () => (
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {[
-        ['University ID',    student.uid],
-        ['Course',           'B.Tech – CSE'],
-        ['Semester',         student.semester],
-        ['Section',          student.section],
-        ['Batch',            student.batch],
-        ['CGPA',             student.cgpa],
-        ['Father\'s Name',   student.fatherName],
-        ['Mother\'s Name',   student.motherName],
-        ['Contact',          student.phone],
-        ['Address',          student.address],
-        ['State',            student.state],
-        ['Email',            `tarun.agnihotri@cumail.in`],
+        ['University ID', student.uid],
+        ['Course', 'B.Tech – CSE'],
+        ['Semester', student.semester],
+        ['Section', student.section],
+        ['Batch', student.batch],
+        ['CGPA', student.cgpa],
+        ['Father\'s Name', student.fatherName],
+        ['Mother\'s Name', student.motherName],
+        ['Contact', student.phone],
+        ['Address', student.address],
+        ['State', student.state],
+        ['Email', `tarun.agnihotri@cumail.in`],
       ].map(([label, value]) => (
         <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
@@ -540,20 +889,22 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
 
   const componentMap = {
-    overview:   Overview,
-    marks:      Marks,
+    overview: Overview,
+    marks: Marks,
     attendance: Attendance,
-    documents:  Documents,
-    events:     Events,
-    profile:    Profile,
+    documents: Documents,
+    events: Events,
+    profile: Profile,
+    locate: LocateCampus,
   };
   const sectionTitle = {
-    overview:   'Overview',
-    marks:      'Marks Card',
+    overview: 'Overview',
+    marks: 'Marks Card',
     attendance: 'Attendance',
-    documents:  'Documents & Forms',
-    events:     'University Events',
-    profile:    'My Profile',
+    documents: 'Documents & Forms',
+    events: 'University Events',
+    profile: 'My Profile',
+    locate: 'Locate Campus',
   };
   const ActiveSection = componentMap[active];
 
